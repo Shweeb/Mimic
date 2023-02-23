@@ -1,2 +1,2 @@
 # Mimic
-Remote Desktop Program
+A Remote Desktop Program
