@@ -32,6 +32,8 @@ def start_server():
 def handle_client(client_socket, client_address):
     # Makes sure the client socket closes upon code completion
     with client_socket:
+        command = None  # Initialize command variable to None
+
         while True:
             # Receive data from the client
             data = client_socket.recv(BUFFER_SIZE)
@@ -46,7 +48,7 @@ def handle_client(client_socket, client_address):
             # Print the received data
             print(f'Received data from {client_address[0]}:{client_address[1]}: {message}')
 
-             # If the message starts with '/', run it as a terminal command
+            # If the message starts with '/', run it as a terminal command
             if message.startswith('/'):
                 # Get the command without the leading '/'
                 command = message[1:]
@@ -54,6 +56,7 @@ def handle_client(client_socket, client_address):
                 try:
                     result = subprocess.check_output(command, shell=True)  # Run the command using subprocess
                     client_socket.sendall(result)  # Send the output of the command back to the client
+                    command = None  # Reset command variable to None after running help command
                 except subprocess.CalledProcessError as e:
                     error_message = f'Command "{command}" failed with error:\n{e.output.decode()}'
                     print(type(error_message))
