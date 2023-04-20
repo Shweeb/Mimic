@@ -173,12 +173,12 @@ class ClientGUI:
 
 # Get config file
 config = configparser.ConfigParser()
-config.read('src/config.ini')
+config.read(['config.ini', 'src/config.ini'])
 
 # Call relevant info
 HOST = config['Client']['HOST']  # Default server hostname or IP address
-PORT = config['Client']['PORT']  # Port to connect to
-BUFFER_SIZE = config['Client']['BUFFER_SIZE']  # Buffer size for receiving data
+PORT = int(config['Client']['PORT'])  # Port to connect to
+BUFFER_SIZE = int(config['Client']['BUFFER_SIZE'])  # Buffer size for receiving data
 
 if __name__ == '__main__':
     client = tk.Tk()
