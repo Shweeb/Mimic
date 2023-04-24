@@ -47,7 +47,7 @@ public class ScreenSender {
             // Check for incoming mouse input data
             try {
                 System.out.println("after try");
-                Socket mouseClient = mouseSocket.accept();
+                Socket mouseClient = mouseSocket.accept(); // TODO find out why it gets stuck here
                 DataInputStream inputStream = new DataInputStream(mouseClient.getInputStream());
                 int remoteX = inputStream.readInt();
                 int remoteY = inputStream.readInt();
