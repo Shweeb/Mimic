@@ -48,10 +48,15 @@ public class ScreenSender {
             try {
                 System.out.println("after try");
                 Socket mouseClient = mouseSocket.accept(); // TODO find out why it gets stuck here
+                System.out.println("Acepted Mouse Socket");
                 DataInputStream inputStream = new DataInputStream(mouseClient.getInputStream());
+                System.out.println("Data Input Strem Defined");
                 int remoteX = inputStream.readInt();
+                System.out.println("Reading numerical shit 1");
                 int remoteY = inputStream.readInt();
+                System.out.println("Reading numerical shit 2");
                 boolean isLeftClick = inputStream.readBoolean();
+                System.out.println("reading boolean type shit");
 
                 System.out.println("after reading input");
 
