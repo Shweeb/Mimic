@@ -1,10 +1,12 @@
-import socket
-import subprocess
+import socket, configparser, subprocess, time
 
 # Define constants
-HOST = 'localhost'  # Server hostname or IP address
-PORT = 8000  # Port to listen on
-BUFFER_SIZE = 1024  # Buffer size for receiving data
+config = configparser.ConfigParser()
+config.read(['config.ini', 'src/config.ini', 'testing/No Packages/Python/config.ini'])
+
+HOST = config['Server']['HOST']  # Default server hostname or IP address
+PORT = int(config['Server']['PORT'])  # Port to connect to
+BUFFER_SIZE = int(config['Server']['BUFFER_SIZE'])  # Buffer size for receiving data
 
 def start_server():
     # Create a socket object

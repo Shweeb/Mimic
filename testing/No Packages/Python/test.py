@@ -1,44 +1,131 @@
+import configparser
+
+# -------------------------------------ConfigParser-------------------------------------
+#region
+# config = configparser.ConfigParser()
+# output = config.read(['src/config.ini', 'config.ini'])
+
+# print(output, "\n")
+
+# server_host = config['Server']['HOST']
+# server_port = config['Server']['PORT']
+# server_buffer_size = config['Server']['BUFFER_SIZE']
+
+# client_host = config['Client']['HOST']
+# client_port = config['Client']['PORT']
+# client_buffer_size = config['Client']['BUFFER_SIZE']
+
+# print(f"Server Host: {server_host}")
+# print(f"Server Port: {server_port}")
+# print(f"Server Buffer Size: {server_buffer_size}")
+# print(f"Client Host: {client_host}")
+# print(f"Client Port: {client_port}")
+# print(f"Client Buffer Size: {client_buffer_size}")
+
+# n = input()
+#endregion
+
+# -------------------------------------PyRDP-------------------------------------
+#region
+# import freerdp
+# import time
+
+# def on_rail(session, width, height, bpp):
+#     print("RDP session is on the rail")
+
+# def on_resize(session, width, height, bpp):
+#     print("RDP session has been resized to {}x{}x{} bits per pixel".format(width, height, bpp))
+
+# def on_disconnect(session):
+#     print("RDP session has been disconnected")
+
+# def on_error(session, code):
+#     print("RDP session error: {}".format(freerdp.get_error_message(code)))
+
+# def on_login_complete(session):
+#     print("RDP session login complete")
+
+# def on_graphics_update(session, x, y, width, height, bpp, data, length):
+#     print("RDP session graphics update at ({}, {}), size={}x{}, bpp={}, data length={}".format(x, y, width, height, bpp, length))
+
+# def on_channel_data(session, channel_id, data, length):
+#     print("RDP session received data on channel {}, data length={}".format(channel_id, length))
+
+# def run_rdp_server():
+#     # Define RDP settings
+#     settings = freerdp.Settings()
+#     settings.server_hostname = "localhost"
+#     settings.server_port = 3389
+#     settings.username = "user"
+#     settings.password = "password"
+#     settings.desktop_width = 1024
+#     settings.desktop_height = 768
+#     settings.color_depth = 32
+
+#     # Create RDP instance
+#     rdp = freerdp.RDP()
+#     rdp.on_rail = on_rail
+#     rdp.on_resize = on_resize
+#     rdp.on_disconnect = on_disconnect
+#     rdp.on_error = on_error
+#     rdp.on_login_complete = on_login_complete
+#     rdp.on_graphics_update = on_graphics_update
+#     rdp.on_channel_data = on_channel_data
+
+#     # Connect to RDP server
+#     rdp.connect(settings)
+
+#     # Wait for RDP session to start
+#     while not rdp.is_connected():
+#         time.sleep(1)
+
+#     # Run RDP session loop
+#     while rdp.is_connected():
+#         try:
+#             rdp.check_activity()
+#         except KeyboardInterrupt:
+#             rdp.disconnect()
+#             break
+
+# if __name__ == "__main__":
+#     run_rdp_server()
+#endregion
+
+# -------------------------------------OpenCV-------------------------------------
+#region
+import cv2
+import numpy as np
 import socket
-import subprocess # Import the subprocess module to run terminal commands
+from PIL import ImageGrab
 
-HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
-BUFFER_SIZE = 1024  # Buffer size for receiving data
+# Set up the socket connection
+HOST = 'localhost'
+PORT = 8000
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
 
-def start_server():
-    """Start the server and listen for incoming connections."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-        server_socket.bind((HOST, PORT))  # Bind the socket to a specific address and port
-        server_socket.listen()  # Listen for incoming connections
-        print(f'Server listening on {HOST}:{PORT}')
+# Define the screen capture size
+SCREEN_SIZE = (1920, 1080)
 
-        while True:
-            client_socket, client_address = server_socket.accept()  # Accept a new connection
-            print(f'Client connected from {client_address}')
+# Set up the screen capture
+fourcc = cv2.VideoWriter_fourcc(*"XVID")
+out = cv2.VideoWriter("output.avi", fourcc, 10.0, SCREEN_SIZE)
 
-            with client_socket:
-                while True:
-                    data = client_socket.recv(BUFFER_SIZE)  # Receive data from the client
+while True:
+    # Capture the screen feed
+    img = np.array(ImageGrab.grab(bbox=(0, 0, SCREEN_SIZE[0], SCREEN_SIZE[1])))
 
-                    if not data:  # If no more data is received, break out of the loop
-                        break
+    # Write the frame to the output video
+    out.write(img)
 
-                    message = data.decode().strip()  # Decode the received data and remove leading/trailing whitespace
-                    print(f'Received message from client: {message}')
+    # Convert the frame to bytes
+    frame_bytes = img.tobytes()
 
-                    if message.startswith('/'):  # If the message starts with '/', run it as a terminal command
-                        command = message[1:]  # Get the command without the leading '/'
-                        try:
-                            result = subprocess.check_output(command, shell=True)  # Run the command using subprocess
-                            client_socket.sendall(result)  # Send the output of the command back to the client
-                        except subprocess.CalledProcessError as e:
-                            error_message = f'Command "{command}" failed with error:\n{e.output.decode()}'
-                            client_socket.sendall(error_message.encode())  # Send the error message back to the client
-                    else:
-                        response = f'Echo: {message}'  # Echo the message back to the client
-                        client_socket.sendall(response.encode())  # Send the response back to the client
+    # Send the frame to the server
+    s.sendall(frame_bytes)
 
-            print(f'Client disconnected from {client_address}')
+# Release the resources
+out.release()
+cv2.destroyAllWindows()
 
-if __name__ == '__main__':
-    start_server()
+#endregion

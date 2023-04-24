@@ -32,9 +32,8 @@
 
 # -------------------------------------------------------
 
-import socket
+import socket, configparser
 import tkinter as tk
-
 
 class ClientGUI:
     def __init__(self, client):
@@ -172,11 +171,14 @@ class ClientGUI:
     def run(self):
         self.client.mainloop()
 
+# Get config file
+config = configparser.ConfigParser()
+config.read(['config.ini', 'src/config.ini', 'testing/No Pa'])
 
-# Define constants
-HOST = 'localhost'  # Default server hostname or IP address
-PORT = 8000  # Port to connect to
-BUFFER_SIZE = 10240  # Buffer size for receiving data
+# Call relevant info
+HOST = config['Client']['HOST']  # Default server hostname or IP address
+PORT = int(config['Client']['PORT'])  # Port to connect to
+BUFFER_SIZE = int(config['Client']['BUFFER_SIZE'])  # Buffer size for receiving data
 
 if __name__ == '__main__':
     client = tk.Tk()
