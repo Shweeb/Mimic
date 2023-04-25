@@ -5,6 +5,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,17 +16,22 @@ import javax.swing.JPanel;
 
 public class ScreenReceiver {
 
+    public static final byte[] DELIMITER = new byte[]{-1, -1, -1, -1}; // Delimiter to mark the end of an image
+
     public static void main(String[] args) throws IOException {
-        // Set the port number to listen on
-        int port = 1234;
+        // Set the port number and IP to listen on
+        int screenPort = 1234;
+        int mousePort = 1235;
+        String senderIP = "localhost";
 
         // Create a JFrame to display the remote screen
         JFrame frame = new JFrame("Remote Screen");
 
         // Create a socket for the ScreenPanel to use
-        Socket socket = new Socket("localhost", port);
+        Socket screenSocket = new Socket(senderIP, screenPort);
+        Socket mouseSocket = new Socket(senderIP, mousePort);
 
-        ScreenPanel screenPanel = new ScreenPanel(socket);
+        ScreenPanel screenPanel = new ScreenPanel(screenSocket, mouseSocket);
         frame.getContentPane().add(screenPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //frame.setResizable(false);
@@ -32,21 +39,39 @@ public class ScreenReceiver {
         frame.setVisible(true);
 
         // Continuously receive and display screen data
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        // try (ServerSocket serverSocket = new ServerSocket(port)) {
+        //     while (true) {
+        //         // Listen for incoming connections
+        //         Socket clientSocket = serverSocket.accept();
+
+        //         // Receive the screen data
+        //         try (InputStream inputStream = clientSocket.getInputStream()) {
+        //             BufferedImage screenshot = ImageIO.read(inputStream);
+
+        //             // Display the screen data
+        //             screenPanel.setScreenshot(screenshot);
+        //             screenPanel.repaint();
+        //         } catch (IOException ex) {
+        //             System.err.println("Error receiving screen data: " + ex.getMessage());
+        //         }
+        //     }
+        // }
+
+        try (DataInputStream inputStream = new DataInputStream(screenSocket.getInputStream())) {
             while (true) {
-                // Listen for incoming connections
-                Socket clientSocket = serverSocket.accept();
+                int imageSize = inputStream.readInt();
+                byte[] imageBytes = new byte[imageSize];
+                inputStream.readFully(imageBytes);
 
-                // Receive the screen data
-                try (InputStream inputStream = clientSocket.getInputStream()) {
-                    BufferedImage screenshot = ImageIO.read(inputStream);
+                // Read and discard delimiter
+                byte[] receivedDelimiter = new byte[DELIMITER.length];
+                inputStream.readFully(receivedDelimiter);
 
-                    // Display the screen data
-                    screenPanel.setScreenshot(screenshot);
-                    screenPanel.repaint();
-                } catch (IOException ex) {
-                    System.err.println("Error receiving screen data: " + ex.getMessage());
-                }
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
+                BufferedImage screenshot = ImageIO.read(byteArrayInputStream);
+
+                screenPanel.setScreenshot(screenshot);
+                screenPanel.repaint();
             }
         }
     }
@@ -55,13 +80,15 @@ public class ScreenReceiver {
     private static class ScreenPanel extends JPanel implements MouseListener {
 
         private BufferedImage screenshot;
-        private Socket socket;
+        private Socket screenSocket;
+        private Socket mouseSocket;
         private DataOutputStream dos;
 
-        public ScreenPanel(Socket socket) {
-            this.socket = socket;
+        public ScreenPanel(Socket screenSocket, Socket mouseSocket) {
+            this.screenSocket = screenSocket;
+            this.mouseSocket = mouseSocket;
             try {
-                dos = new DataOutputStream(socket.getOutputStream());
+                dos = new DataOutputStream(mouseSocket.getOutputStream());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -78,6 +105,8 @@ public class ScreenReceiver {
             super.paintComponent(g);
             if (screenshot != null) {
                 g.drawImage(screenshot, 0, 0, null);
+            } else {
+                g.drawString("Waiting for image...", 10, 20);
             }
         }
 
@@ -87,7 +116,7 @@ public class ScreenReceiver {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (e.getButton() == MouseEvent.BUTTON1) {
+            if (e.getButton() == MouseEvent.BUTTON1 && screenshot != null) {
                 int remoteX = e.getX() * screenshot.getWidth() / getWidth();
                 int remoteY = e.getY() * screenshot.getHeight() / getHeight();
 

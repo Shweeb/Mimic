@@ -93,39 +93,41 @@ import configparser
 
 # -------------------------------------OpenCV-------------------------------------
 #region
-import cv2
-import numpy as np
-import socket
-from PIL import ImageGrab
+# import cv2
+# import numpy as np
+# import socket
+# from PIL import ImageGrab
 
-# Set up the socket connection
-HOST = 'localhost'
-PORT = 8000
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((HOST, PORT))
+# # Set up the socket connection
+# HOST = 'localhost'
+# PORT = 8000
+# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# s.connect((HOST, PORT))
 
-# Define the screen capture size
-SCREEN_SIZE = (1920, 1080)
+# # Define the screen capture size
+# SCREEN_SIZE = (1920, 1080)
 
-# Set up the screen capture
-fourcc = cv2.VideoWriter_fourcc(*"XVID")
-out = cv2.VideoWriter("output.avi", fourcc, 10.0, SCREEN_SIZE)
+# # Set up the screen capture
+# fourcc = cv2.VideoWriter_fourcc(*"XVID")
+# out = cv2.VideoWriter("output.avi", fourcc, 10.0, SCREEN_SIZE)
 
-while True:
-    # Capture the screen feed
-    img = np.array(ImageGrab.grab(bbox=(0, 0, SCREEN_SIZE[0], SCREEN_SIZE[1])))
+# while True:
+#     # Capture the screen feed
+#     img = np.array(ImageGrab.grab(bbox=(0, 0, SCREEN_SIZE[0], SCREEN_SIZE[1])))
 
-    # Write the frame to the output video
-    out.write(img)
+#     # Write the frame to the output video
+#     out.write(img)
 
-    # Convert the frame to bytes
-    frame_bytes = img.tobytes()
+#     # Convert the frame to bytes
+#     frame_bytes = img.tobytes()
 
-    # Send the frame to the server
-    s.sendall(frame_bytes)
+#     # Send the frame to the server
+#     s.sendall(frame_bytes)
 
-# Release the resources
-out.release()
-cv2.destroyAllWindows()
+# # Release the resources
+# out.release()
+# cv2.destroyAllWindows()
 
 #endregion
+
+
