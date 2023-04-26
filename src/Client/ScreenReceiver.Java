@@ -3,6 +3,10 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.Point;
+import java.awt.Graphics2D;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
@@ -111,19 +115,34 @@ public class ScreenReceiver {
         }
 
         public void setScreenshot(BufferedImage screenshot) {
-            this.screenshot = screenshot;
+            // this.screenshot = screenshot;
+            // Scale the screenshot to fit the panel size
+            Image scaledImage = screenshot.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST);
+            BufferedImage scaledScreenshot = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = scaledScreenshot.createGraphics();
+            g2d.drawImage(scaledImage, 0, 0, null);
+            g2d.dispose();
+
+            this.screenshot = scaledScreenshot;
         }
 
         @Override
         public void mouseClicked(MouseEvent e) {
             if (e.getButton() == MouseEvent.BUTTON1 && screenshot != null) {
-                int remoteX = e.getX() * screenshot.getWidth() / getWidth();
-                int remoteY = e.getY() * screenshot.getHeight() / getHeight();
+                double panelWidth = getWidth();
+                double panelHeight = getHeight();
+                double relativeX = e.getX() / panelWidth;
+                double relativeY = e.getY() / panelHeight;
+                // System.out.println("Panel Size X:" + panelWidth + " Y:" + panelHeight);
+                // System.out.println("Mouse click position on panel X:" + e.getX() + " Y:" + e.getY());
+                // System.out.println("Relative values X:" + relativeX + " Y:" + relativeY + "\n");
 
                 // Send mouse click coordinates to ScreenSender
                 try {
-                    dos.writeInt(remoteX);
-                    dos.writeInt(remoteY);
+                    // dos.writeInt(remoteX);
+                    // dos.writeInt(remoteY);
+                    dos.writeDouble(relativeX);
+                    dos.writeDouble(relativeY);
                     dos.writeBoolean(true); // indicate a left mouse click
                     dos.flush();
                 } catch (IOException ex) {

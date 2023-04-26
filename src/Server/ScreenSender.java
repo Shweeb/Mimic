@@ -1,6 +1,7 @@
 import java.awt.AWTException;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
@@ -46,24 +47,41 @@ public class ScreenSender {
             Thread mouseThread = new Thread(() -> {
                 while (true) {
                     try {
-                        System.out.println("about to read mouse stuff");
-                        int remoteX = dis.readInt();
-                        int remoteY = dis.readInt();
+                        // Get the default toolkit
+                        Toolkit toolkit = Toolkit.getDefaultToolkit();
+
+                        // Get the screen size as a dimension object
+                        Dimension screenSize = toolkit.getScreenSize();
+
+                        // Get the screen width and height from the dimension object
+                        int screenWidth = screenSize.width;
+                        int screenHeight = screenSize.height;
+
+                        // Get the relative mouse position from the panel
+                        double  relativeX = dis.readDouble();
+                        double  relativeY = dis.readDouble();
                         boolean isLeftClick = dis.readBoolean();
-                        System.out.println("Mouse input received.");
+
+                        // Scale the numbers to deal with decimals
+                        int scaledX = (int) (relativeX * 10000);
+                        int scaledY = (int) (relativeY * 10000);
+
+                        int localX = (int) (scaledX * screenWidth / 10000.0);
+                        int localY = (int) (scaledY * screenHeight / 10000.0);
 
                         // Perform the mouse click on the server
-                        int localX = remoteX * screenRect.width / 1920;
-                        int localY = remoteY * screenRect.height / 1080;
                         robot.mouseMove(localX, localY);
+                        // System.out.println("Screen Size X:" + screenWidth + " Y:" + screenHeight);
+                        // System.out.println("Receieved Relative values X:" + relativeX + " Y:" + relativeY);
+                        // System.out.println("Mouse click position on screen X:" + localX + " Y:" + localY + "\n");
 
                         if (isLeftClick) {
                             robot.mousePress(InputEvent.BUTTON1_MASK);
                             robot.mouseRelease(InputEvent.BUTTON1_MASK);
-                            System.out.println("Mouse click performed.");
                         }
                     } catch (IOException ex) {
                         System.err.println("Error receiving mouse input: " + ex.getMessage());
+                        break;
                     }
                 }
             });
@@ -72,11 +90,9 @@ public class ScreenSender {
 
             // Continuously capture and send screen data
             while (true) {
-                System.out.println("1");
                 // Capture the screen data
                 BufferedImage screenshot = robot.createScreenCapture(screenRect);
 
-                System.out.println("2");
                 // Send the screen data over the network
                 // outputStream.writeInt(screenshot.getWidth());
                 // outputStream.writeInt(screenshot.getHeight());
@@ -96,15 +112,12 @@ public class ScreenSender {
                 outputStream.write(DELIMITER);
                 outputStream.flush();
 
-                System.out.println("3");
                 // Sleep for 100 milliseconds before capturing the screen again
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException ex) {
                     // Ignore interruptions
                 }
-
-                System.out.println("4");
             }
         }
     }
