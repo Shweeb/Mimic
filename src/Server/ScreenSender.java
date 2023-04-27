@@ -61,8 +61,8 @@ public class ScreenSender {
                         // Get the relative mouse position from the panel
                         double  relativeX = dis.readDouble();
                         double  relativeY = dis.readDouble();
-                        // int button = dis.readInt();
-                        boolean isLeftClick = dis.readBoolean();
+                        int button = dis.readInt();
+                        // boolean isLeftClick = dis.readBoolean();
 
                         // Scale the numbers to deal with decimals
                         int scaledX = (int) (relativeX * 10000);
@@ -73,36 +73,36 @@ public class ScreenSender {
 
                         // Perform the mouse click on the server
                         robot.mouseMove(localX, localY);
-                        System.out.println("Screen Size X:" + screenWidth + " Y:" + screenHeight);
-                        System.out.println("Receieved Relative values X:" + relativeX + " Y:" + relativeY);
-                        System.out.println("Mouse click position on screen X:" + localX + " Y:" + localY + "\n");
+                        // System.out.println("Screen Size X:" + screenWidth + " Y:" + screenHeight);
+                        // System.out.println("Receieved Relative values X:" + relativeX + " Y:" + relativeY);
+                        // System.out.println("Mouse click position on screen X:" + localX + " Y:" + localY + "\n");
 
-                        // if (button == MouseEvent.BUTTON1 || button == MouseEvent.BUTTON2 || button == MouseEvent.BUTTON3) {
-                        //     int mask;
-                        //     switch (button) {
-                        //         case MouseEvent.BUTTON1: // Is left click
-                        //             mask = InputEvent.BUTTON1_MASK;
-                        //             break;
-                        //         case MouseEvent.BUTTON2: // Is middle click
-                        //             mask = InputEvent.BUTTON2_MASK;
-                        //             break;
-                        //         case MouseEvent.BUTTON3: // Is right click
-                        //             mask = InputEvent.BUTTON3_MASK;
-                        //             break;
-                        //         default:
-                        //             mask = 0;
-                        //             break;
-                        //     }
+                        if (button == MouseEvent.BUTTON1 || button == MouseEvent.BUTTON2 || button == MouseEvent.BUTTON3) {
+                            int mask;
+                            switch (button) {
+                                case MouseEvent.BUTTON1: // Is left click
+                                    mask = InputEvent.BUTTON1_MASK;
+                                    break;
+                                case MouseEvent.BUTTON2: // Is middle click
+                                    mask = InputEvent.BUTTON2_MASK;
+                                    break;
+                                case MouseEvent.BUTTON3: // Is right click
+                                    mask = InputEvent.BUTTON3_MASK;
+                                    break;
+                                default:
+                                    mask = 0;
+                                    break;
+                            }
 
-                        //     // Perform mouse action
-                        //     robot.mousePress(mask);
-                        //     robot.mouseRelease(mask);
-                        // }
-
-                        if (isLeftClick) {
-                            robot.mousePress(InputEvent.BUTTON1_MASK);
-                            robot.mouseRelease(InputEvent.BUTTON1_MASK);
+                            // Perform mouse action
+                            robot.mousePress(mask);
+                            robot.mouseRelease(mask);
                         }
+
+                        // if (isLeftClick) {
+                        //     robot.mousePress(InputEvent.BUTTON1_MASK);
+                        //     robot.mouseRelease(InputEvent.BUTTON1_MASK);
+                        // }
 
                     } catch (IOException ex) {
                         System.err.println("Error receiving mouse input: " + ex.getMessage());
