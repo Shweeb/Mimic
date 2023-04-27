@@ -128,14 +128,37 @@ public class ScreenReceiver {
 
         @Override
         public void mouseClicked(MouseEvent e) {
+            // if (screenshot != null) {
+            //     double panelWidth = getWidth();
+            //     double panelHeight = getHeight();
+            //     double relativeX = e.getX() / panelWidth;
+            //     double relativeY = e.getY() / panelHeight;
+
+            //     int button = e.getButton();
+
+            //     System.out.println("Panel Size X:" + panelWidth + " Y:" + panelHeight);
+            //     System.out.println("Mouse click position on panel X:" + e.getX() + " Y:" + e.getY());
+            //     System.out.println("Relative values X:" + relativeX + " Y:" + relativeY + "\n");
+            //     if (button == MouseEvent.BUTTON1 || button == MouseEvent.BUTTON2 || button == MouseEvent.BUTTON3) {
+            //         // Send mouse click coordinates to ScreenSender
+            //         try {
+            //             dos.writeDouble(relativeX);
+            //             dos.writeDouble(relativeY);
+            //             dos.writeInt(button);
+            //             dos.flush();
+            //         } catch (IOException ex) {
+            //             System.err.println("Error sending mouse click: " + ex.getMessage());
+            //         }
+            //     }
+            // }
             if (e.getButton() == MouseEvent.BUTTON1 && screenshot != null) {
                 double panelWidth = getWidth();
                 double panelHeight = getHeight();
                 double relativeX = e.getX() / panelWidth;
                 double relativeY = e.getY() / panelHeight;
-                // System.out.println("Panel Size X:" + panelWidth + " Y:" + panelHeight);
-                // System.out.println("Mouse click position on panel X:" + e.getX() + " Y:" + e.getY());
-                // System.out.println("Relative values X:" + relativeX + " Y:" + relativeY + "\n");
+                System.out.println("Panel Size X:" + panelWidth + " Y:" + panelHeight);
+                System.out.println("Mouse click position on panel X:" + e.getX() + " Y:" + e.getY());
+                System.out.println("Relative values X:" + relativeX + " Y:" + relativeY + "\n");
 
                 // Send mouse click coordinates to ScreenSender
                 try {
