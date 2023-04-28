@@ -23,7 +23,8 @@ public class ScreenSender {
         // Set the destination IP address and port number
         String destinationIP = "localhost";
         int screenPort = 1234;
-        int mousePort = 1235;
+        // int mousePort = 1235;
+        int mousePort = screenPort + 1;
 
         // Create a robot to capture the screen
         Robot robot = new Robot();
@@ -48,56 +49,99 @@ public class ScreenSender {
             Thread mouseThread = new Thread(() -> {
                 while (true) {
                     try {
-                        // Get the default toolkit
-                        Toolkit toolkit = Toolkit.getDefaultToolkit();
+                        boolean isMouseEvent = dis.readBoolean();
 
-                        // Get the screen size as a dimension object
-                        Dimension screenSize = toolkit.getScreenSize();
+                        if (isMouseEvent){
+                            // Get the default toolkit
+                            Toolkit toolkit = Toolkit.getDefaultToolkit();
 
-                        // Get the screen width and height from the dimension object
-                        int screenWidth = screenSize.width;
-                        int screenHeight = screenSize.height;
+                            // Get the screen size as a dimension object
+                            Dimension screenSize = toolkit.getScreenSize();
 
-                        // Get the relative mouse position from the panel
-                        double  relativeX = dis.readDouble();
-                        double  relativeY = dis.readDouble();
-                        int button = dis.readInt();
-                        // boolean isLeftClick = dis.readBoolean();
+                            // Get the screen width and height from the dimension object
+                            int screenWidth = screenSize.width;
+                            int screenHeight = screenSize.height;
 
-                        // Scale the numbers to deal with decimals
-                        int scaledX = (int) (relativeX * 10000);
-                        int scaledY = (int) (relativeY * 10000);
+                            // Get the relative mouse position from the panel
+                            double  relativeX = dis.readDouble();
+                            double  relativeY = dis.readDouble();
+                            int button = dis.readInt();
+                            // boolean isLeftClick = dis.readBoolean();
 
-                        int localX = (int) (scaledX * screenWidth / 10000.0);
-                        int localY = (int) (scaledY * screenHeight / 10000.0);
+                            // Scale the numbers to deal with decimals
+                            int scaledX = (int) (relativeX * 10000);
+                            int scaledY = (int) (relativeY * 10000);
 
-                        // Perform the mouse click on the server
-                        robot.mouseMove(localX, localY);
-                        // System.out.println("Screen Size X:" + screenWidth + " Y:" + screenHeight);
-                        // System.out.println("Receieved Relative values X:" + relativeX + " Y:" + relativeY);
-                        // System.out.println("Mouse click position on screen X:" + localX + " Y:" + localY + "\n");
+                            int localX = (int) (scaledX * screenWidth / 10000.0);
+                            int localY = (int) (scaledY * screenHeight / 10000.0);
 
-                        if (button == MouseEvent.BUTTON1 || button == MouseEvent.BUTTON2 || button == MouseEvent.BUTTON3) {
-                            int mask;
-                            switch (button) {
-                                case MouseEvent.BUTTON1: // Is left click
-                                    mask = InputEvent.BUTTON1_MASK;
+                            // Perform the mouse click on the server
+                            robot.mouseMove(localX, localY);
+                            // System.out.println("Screen Size X:" + screenWidth + " Y:" + screenHeight);
+                            // System.out.println("Receieved Relative values X:" + relativeX + " Y:" + relativeY);
+                            // System.out.println("Mouse click position on screen X:" + localX + " Y:" + localY + "\n");
+
+                            if (button == MouseEvent.BUTTON1 || button == MouseEvent.BUTTON2 || button == MouseEvent.BUTTON3) {
+                                int mask;
+                                switch (button) {
+                                    case MouseEvent.BUTTON1: // Is left click
+                                        mask = InputEvent.BUTTON1_MASK;
+                                        break;
+
+                                    case MouseEvent.BUTTON2: // Is middle click
+                                        mask = InputEvent.BUTTON2_MASK;
+                                        break;
+
+                                    case MouseEvent.BUTTON3: // Is right click
+                                        mask = InputEvent.BUTTON3_MASK;
+                                        break;
+
+                                    default:
+                                        mask = 0;
+                                        break;
+                                }
+
+                                // Perform mouse action
+                                robot.mousePress(mask);
+                                robot.mouseRelease(mask);
+                            }
+                        } else { // Handle keyboard based events
+                            int eventType = dis.readInt();
+                            System.out.println(eventType);
+
+                            switch (eventType) {
+                                case 0: { // Key Pressed
+                                    int keyCode = dis.readInt();
+                                    System.out.println("Key Pressed: " + keyCode);
+                                    robot.keyPress(keyCode);
                                     break;
-                                case MouseEvent.BUTTON2: // Is middle click
-                                    mask = InputEvent.BUTTON2_MASK;
+                                }
+
+                                case 1: { // Key Released
+                                    int keyCode = dis.readInt();
+                                    System.out.println("Key Released: " + keyCode);
+                                    robot.keyRelease(keyCode);
                                     break;
-                                case MouseEvent.BUTTON3: // Is right click
-                                    mask = InputEvent.BUTTON3_MASK;
+                                }
+
+                                case 2: { // Key Typed
+                                    char keyChar = dis.readChar();
+                                    System.out.println("Key Typed: " + keyChar);
+                                    robot.keyPress(Character.toUpperCase(keyChar));
+                                    robot.keyRelease(Character.toUpperCase(keyChar));
                                     break;
+                                }
+
                                 default:
-                                    mask = 0;
                                     break;
                             }
-
-                            // Perform mouse action
-                            robot.mousePress(mask);
-                            robot.mouseRelease(mask);
                         }
+
+                        // try {
+                        //     Thread.sleep(50); // Sleep for 50 milliseconds
+                        // } catch (InterruptedException ex) {
+                        //     // Ignore interruptions
+                        // }
 
                         // if (isLeftClick) {
                         //     robot.mousePress(InputEvent.BUTTON1_MASK);
@@ -119,15 +163,6 @@ public class ScreenSender {
                 BufferedImage screenshot = robot.createScreenCapture(screenRect);
 
                 // Send the screen data over the network
-                // outputStream.writeInt(screenshot.getWidth());
-                // outputStream.writeInt(screenshot.getHeight());
-                // for (int y = 0; y < screenshot.getHeight(); y++) {
-                //     for (int x = 0; x < screenshot.getWidth(); x++) {
-                //         outputStream.writeInt(screenshot.getRGB(x, y));
-                //     }
-                // }
-
-                // Send the screen data over the network
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 ImageIO.write(screenshot, "jpg", byteArrayOutputStream);
                 byte[] imageBytes = byteArrayOutputStream.toByteArray();
@@ -138,11 +173,11 @@ public class ScreenSender {
                 outputStream.flush();
 
                 // Sleep for 100 milliseconds before capturing the screen again
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                    // Ignore interruptions
-                }
+                // try {
+                //     Thread.sleep(10);
+                // } catch (InterruptedException ex) {
+                //     // Ignore interruptions
+                // }
             }
         }
     }

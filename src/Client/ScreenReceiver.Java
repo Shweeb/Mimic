@@ -3,6 +3,8 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.Point;
@@ -42,25 +44,6 @@ public class ScreenReceiver {
         frame.pack();
         frame.setVisible(true);
 
-        // Continuously receive and display screen data
-        // try (ServerSocket serverSocket = new ServerSocket(port)) {
-        //     while (true) {
-        //         // Listen for incoming connections
-        //         Socket clientSocket = serverSocket.accept();
-
-        //         // Receive the screen data
-        //         try (InputStream inputStream = clientSocket.getInputStream()) {
-        //             BufferedImage screenshot = ImageIO.read(inputStream);
-
-        //             // Display the screen data
-        //             screenPanel.setScreenshot(screenshot);
-        //             screenPanel.repaint();
-        //         } catch (IOException ex) {
-        //             System.err.println("Error receiving screen data: " + ex.getMessage());
-        //         }
-        //     }
-        // }
-
         try (DataInputStream inputStream = new DataInputStream(screenSocket.getInputStream())) {
             while (true) {
                 int imageSize = inputStream.readInt();
@@ -81,7 +64,7 @@ public class ScreenReceiver {
     }
 
     // A JPanel to display the remote screen
-    private static class ScreenPanel extends JPanel implements MouseListener {
+    private static class ScreenPanel extends JPanel implements MouseListener, KeyListener {
 
         private BufferedImage screenshot;
         private Socket screenSocket;
@@ -96,7 +79,11 @@ public class ScreenReceiver {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             addMouseListener(this);
+            setFocusable(true); // Makes it so the panel can actually take keyboard inputs
+            requestFocusInWindow();
+            addKeyListener(this);
         }
 
         @Override
@@ -142,6 +129,7 @@ public class ScreenReceiver {
                 if (button == MouseEvent.BUTTON1 || button == MouseEvent.BUTTON2 || button == MouseEvent.BUTTON3) {
                     // Send mouse click coordinates to ScreenSender
                     try {
+                        dos.writeBoolean(true); // Indicate that this is a mouse event
                         dos.writeDouble(relativeX);
                         dos.writeDouble(relativeY);
                         dos.writeInt(button);
@@ -151,27 +139,6 @@ public class ScreenReceiver {
                     }
                 }
             }
-            // if (e.getButton() == MouseEvent.BUTTON1 && screenshot != null) {
-            //     double panelWidth = getWidth();
-            //     double panelHeight = getHeight();
-            //     double relativeX = e.getX() / panelWidth;
-            //     double relativeY = e.getY() / panelHeight;
-            //     System.out.println("Panel Size X:" + panelWidth + " Y:" + panelHeight);
-            //     System.out.println("Mouse click position on panel X:" + e.getX() + " Y:" + e.getY());
-            //     System.out.println("Relative values X:" + relativeX + " Y:" + relativeY + "\n");
-
-            //     // Send mouse click coordinates to ScreenSender
-            //     try {
-            //         // dos.writeInt(remoteX);
-            //         // dos.writeInt(remoteY);
-            //         dos.writeDouble(relativeX);
-            //         dos.writeDouble(relativeY);
-            //         dos.writeBoolean(true); // indicate a left mouse click
-            //         dos.flush();
-            //     } catch (IOException ex) {
-            //         System.err.println("Error sending mouse click: " + ex.getMessage());
-            //     }
-            // }
         }
 
         @Override
@@ -192,6 +159,44 @@ public class ScreenReceiver {
         @Override
         public void mouseEntered(MouseEvent e) {
             // add your code here
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            sendKeyEvent(0, e.getKeyCode(), '\0');
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            sendKeyEvent(1, e.getKeyCode(), '\0');
+        }
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+            sendKeyEvent(2, 0, e.getKeyChar());
+        }
+
+        private void sendKeyEvent(int eventType, int keyCode, char keyChar) {
+            try {
+                dos.writeBoolean(false); // Indicate that this is a keyboard event
+                dos.writeInt(eventType);
+
+                if (eventType == 2) { // KeyTyped event
+                    dos.writeChar(keyChar);
+                    System.out.println("Key Typed: " + keyChar);
+                } else {
+                    dos.writeInt(keyCode);
+                    if (eventType == 0) {
+                        System.out.println("Key Pressed: " + keyCode);
+                    } else if (eventType == 1) {
+                        System.out.println("Key Released: " + keyCode);
+                    }
+                }
+
+                dos.flush();
+            } catch (IOException ex) {
+                System.err.println("Error sending keyboard event: " + ex.getMessage());
+            }
         }
     }
 }
