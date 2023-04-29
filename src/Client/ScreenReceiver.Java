@@ -210,14 +210,8 @@ public class ScreenReceiver {
 
                 if (eventType == 2) { // KeyTyped event
                     dos.writeChar(keyChar);
-                    System.out.println("Key Typed: " + keyChar);
                 } else {
                     dos.writeInt(keyCode);
-                    if (eventType == 0) {
-                        System.out.println("Key Pressed: " + keyCode);
-                    } else if (eventType == 1) {
-                        System.out.println("Key Released: " + keyCode);
-                    }
                 }
 
                 dos.flush();

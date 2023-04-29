@@ -129,21 +129,18 @@ public class ScreenSender {
                         switch (eventType) {
                             case 0: { // Key Pressed
                                 int keyCode = dis.readInt();
-                                System.out.println("Key Pressed: " + keyCode);
                                 robot.keyPress(keyCode);
                                 break;
                             }
 
                             case 1: { // Key Released
                                 int keyCode = dis.readInt();
-                                System.out.println("Key Released: " + keyCode);
                                 robot.keyRelease(keyCode);
                                 break;
                             }
 
                             case 2: { // Key Typed
                                 char keyChar = dis.readChar();
-                                System.out.println("Key Typed: " + keyChar);
                                 robot.keyPress(Character.toUpperCase(keyChar));
                                 robot.keyRelease(Character.toUpperCase(keyChar));
                                 break;

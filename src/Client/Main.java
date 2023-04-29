@@ -106,11 +106,9 @@ public class Main {
 
         // Connect button action
         connectButton.addActionListener(e -> {
-            System.out.println("1");
             String senderIP = senderIPInput.getText().trim();
             String screenPortText = screenPortInput.getText().trim();
             String mousePortText = mousePortInput.getText().trim();
-            System.out.println("2");
 
             if (senderIP.isEmpty() || screenPortText.isEmpty() || (!useScreenPortPlusOneCheckbox.isSelected() && mousePortText.isEmpty())) {
                 consoleOutput.append("Error: All required fields must be filled in.\n");
@@ -120,20 +118,15 @@ public class Main {
 
             int screenPort = Integer.parseInt(screenPortText);
             int mousePort = useScreenPortPlusOneCheckbox.isSelected() ? screenPort + 1 : Integer.parseInt(mousePortText);
-            System.out.println("3");
 
 
             // Create a new thread to handle the connection
             Thread connectionThread = new Thread(() -> {
-                System.out.println("4");
                 try {
                     System.out.println("IP: " + senderIP + "\nScreen Port: " + screenPort + "\nMouse Port: " + mousePort);
                     screenReceiver = new ScreenReceiver(senderIP, screenPort, mousePort);
 
-                    System.out.println("5");
-
                     while (!stopFlag.get()) {
-                        System.out.println("6");
                         screenReceiver.start();
                     }
                 } catch (IOException ex) {
@@ -145,7 +138,6 @@ public class Main {
             // Start the connection thread
             connectionThread.start();
 
-            System.out.println("7");
             connectButton.setEnabled(false);
             disconnectButton.setEnabled(true);
         });
