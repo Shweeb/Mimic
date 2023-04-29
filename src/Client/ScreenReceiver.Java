@@ -24,20 +24,34 @@ public class ScreenReceiver {
 
     public static final byte[] DELIMITER = new byte[]{-1, -1, -1, -1}; // Delimiter to mark the end of an image
 
-    public static void main(String[] args) throws IOException {
+    private String senderIP;
+    private int screenPort;
+    private int mousePort;
+    private ScreenPanel screenPanel;
+    private JFrame frame;
+
+    // Add instance variables for sockets and streams
+    private Socket screenSocket;
+    private Socket mouseSocket;
+    // private Thread screenReceiverThread;
+
+    public ScreenReceiver(String senderIP, int screenPort, int mousePort) {
         // Set the port number and IP to listen on
-        int screenPort = 1234;
-        int mousePort = 1235;
-        String senderIP = "localhost";
+        this.senderIP = senderIP;
+        this.screenPort = screenPort;
+        this.mousePort = mousePort;
+    }
+
+    public void start() throws IOException {
 
         // Create a JFrame to display the remote screen
-        JFrame frame = new JFrame("Remote Screen");
+        frame = new JFrame("Remote Screen");
 
         // Create a socket for the ScreenPanel to use
-        Socket screenSocket = new Socket(senderIP, screenPort);
-        Socket mouseSocket = new Socket(senderIP, mousePort);
+        screenSocket = new Socket(senderIP, screenPort);
+        mouseSocket = new Socket(senderIP, mousePort);
 
-        ScreenPanel screenPanel = new ScreenPanel(screenSocket, mouseSocket);
+        screenPanel = new ScreenPanel(screenSocket, mouseSocket);
         frame.getContentPane().add(screenPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //frame.setResizable(false);
@@ -60,6 +74,19 @@ public class ScreenReceiver {
                 screenPanel.setScreenshot(screenshot);
                 screenPanel.repaint();
             }
+        }
+    }
+
+    public void stop() {
+        try {
+            if (screenSocket != null) {
+                screenSocket.close();
+            }
+            if (mouseSocket != null) {
+                mouseSocket.close();
+            }
+        } catch (IOException e) {
+            System.err.println("Error closing sockets: " + e.getMessage());
         }
     }
 
