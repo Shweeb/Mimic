@@ -126,8 +126,6 @@ public class Main {
                     while (!stopFlag.get()) {
                         screenSender.start();
                     }
-
-                    screenSender.start();
                 } catch (Exception ex) {
                     // System.err.println("Failed to start the ScreenSender: " + ex.getMessage());
                     System.err.println("Server Closed: " + ex.getMessage());
